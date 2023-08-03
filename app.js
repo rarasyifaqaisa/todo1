@@ -7,6 +7,7 @@ const Todo = require('./models/Todo');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('./models/User');
+const roleController = require('./controllers/roleController');
 
 // Inisialisasi aplikasi Express
 const app = express();
@@ -205,6 +206,84 @@ app.delete('/api/todos/:id', authenticateUser, async (req, res) => {
     console.error('Error deleting todo:', error);
     res.status(500).json({ error: 'Failed to delete todo' });
   }
+});
+
+// Endpoint untuk membuat role baru (hanya boleh diakses oleh superadmin)
+app.post('/api/roles', authenticateUser, checkSuperadminRole, roleController.createRole);
+
+// Endpoint untuk membuat peran baru
+app.post('/api/roles', async (req, res) => {
+  const { name } = req.body;
+
+  // Validate that the name is provided
+  if (!name) {
+    return res.status(400).json({ error: 'Role name is required' });
+  }
+
+  try {
+    // Check if the role name is already taken
+    const existingRole = await Role.findOne({ name });
+    if (existingRole) {
+      return res.status(409).json({ error: 'Role name already exists' });
+    }
+
+    const newRole = new Role({ name });
+    await newRole.save();
+
+    res.status(201).json({ message: 'Role created successfully', role: newRole });
+  } catch (error) {
+    console.error('Error creating role:', error);
+    res.status(500).json({ error: 'Failed to create role' });
+  }
+});
+
+// Endpoint untuk mengambil daftar role (hanya boleh diakses oleh superadmin)
+app.get('/api/roles', authenticateUser, checkSuperadminRole, roleController.getRoles);
+
+// Middleware untuk memeriksa role superadmin
+function checkSuperadminRole(req, res, next) {
+  // Asumsikan role superadmin memiliki ID tertentu dalam database (misalnya role "superadmin" memiliki ID "12345")
+  const superadminRoleId = '12345';
+  if (req.userRole && req.userRole.toString() === superadminRoleId) {
+    next();
+  } else {
+    res.status(403).json({ error: 'Access denied. Superadmin role required.' });
+  }
+}
+
+// Middleware untuk memeriksa role admin (hanya boleh mengakses endpoint GET /api/todos)
+function checkAdminRole(req, res, next) {
+  // Asumsikan role admin memiliki ID tertentu dalam database (misalnya role "admin" memiliki ID "54321")
+  const adminRoleId = '54321';
+  if (req.userRole && req.userRole.toString() === adminRoleId) {
+    next();
+  } else {
+    res.status(403).json({ error: 'Access denied. Admin role required.' });
+  }
+}
+
+// Endpoint untuk mengambil daftar peran yang ada
+app.get('/api/roles', async (req, res) => {
+  try {
+    const roles = await Role.find({});
+    res.status(200).json(roles);
+  } catch (error) {
+    console.error('Error fetching roles:', error);
+    res.status(500).json({ error: 'Failed to fetch roles' });
+  }
+});
+
+// Endpoint untuk mengambil daftar todo items (hanya boleh diakses oleh admin)
+app.get('/api/todos', authenticateUser, checkAdminRole, (req, res) => {
+  Todo.find({})
+    .exec()
+    .then((todos) => {
+      res.status(200).json(todos);
+    })
+    .catch((err) => {
+      console.error('Error fetching todos:', err);
+      res.status(500).json({ error: 'Failed to fetch todos' });
+    });
 });
 
   app.listen(PORT, () => {
