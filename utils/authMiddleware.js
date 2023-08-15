@@ -16,7 +16,7 @@ const authenticateUser = (req, res, next) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    req.userId = jwt.verify(accessToken, JWT_SECRET).userId;
+    req.user = jwt.verify(accessToken, JWT_SECRET).user;
     next();
   } catch (error) {
     console.error('Error verifying token:', error);
@@ -24,4 +24,6 @@ const authenticateUser = (req, res, next) => {
   }
 };
 
-module.exports = authenticateUser;
+module.exports = {
+  authenticateUser,
+};

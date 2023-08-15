@@ -24,3 +24,8 @@ exports.getRoles = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch roles' });
   }
 };
+
+module.exports = {
+  createRole,
+  getRoles,
+};

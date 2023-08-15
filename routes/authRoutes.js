@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
+const { authenticateUser } = require('../utils/authMiddleware');
 
 // User registration endpoint
 router.post('/api/register', async (req, res) => {
@@ -55,7 +56,7 @@ router.post('/api/login', async (req, res) => {
       console.log(passwordMatch)
   
       // Generate a JSON Web Token (JWT) for user authentication
-      const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
+      const token = jwt.sign({ user: user._id }, JWT_SECRET, { expiresIn: '1h' });
   
       res.status(200).json({ token });
     } catch (error) {
@@ -63,5 +64,8 @@ router.post('/api/login', async (req, res) => {
       res.status(500).json({ error: 'Failed to log in' });
     }
   });
+
+// Get current user information endpoint
+router.get('/user/me', authenticateUser, authController.getCurrentUser);
 
 module.exports = router;

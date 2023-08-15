@@ -3,7 +3,7 @@ const Todo = require('../models/Todo');
 // Controller untuk mendapatkan semua todos
 const getAllTodos = async (req, res) => {
   try {
-    const todos = await Todo.find({ userId: req.user._id });
+    const todos = await Todo.find({ user: req.user._id });
     res.status(200).json({ todos });
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -18,10 +18,10 @@ const createTodo = async (req, res) => {
     // Buat instansi todo baru
     const todo = new Todo({
       title,
-      userId: req.user._id,
+      user: req.user._id,
     });
 
-    // Simpan todo ke database
+    // Simpan todo ke database  
     await todo.save();
 
     res.status(201).json({ todo });
@@ -35,8 +35,8 @@ const getTodoById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Cari todo berdasarkan ID dan userId
-    const todo = await Todo.findOne({ _id: id, userId: req.user._id });
+    // Cari todo berdasarkan ID dan user
+    const todo = await Todo.findOne({ _id: id, user: req.user._id });
 
     if (todo) {
       res.status(200).json({ todo });
@@ -54,9 +54,9 @@ const updateTodo = async (req, res) => {
     const { id } = req.params;
     const { title, completed } = req.body;
 
-    // Cari dan update todo berdasarkan ID dan userId
+    // Cari dan update todo berdasarkan ID dan user
     const todo = await Todo.findOneAndUpdate(
-      { _id: id, userId: req.user._id },
+      { _id: id, user: req.user._id },
       { title, completed },
       { new: true }
     );
@@ -76,8 +76,8 @@ const deleteTodo = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Hapus todo berdasarkan ID dan userId
-    await Todo.findOneAndDelete({ _id: id, userId: req.user._id });
+    // Hapus todo berdasarkan ID dan user
+    await Todo.findOneAndDelete({ _id: id, user: req.user._id });
 
     res.status(200).json({ message: 'Todo deleted successfully' });
   } catch (error) {

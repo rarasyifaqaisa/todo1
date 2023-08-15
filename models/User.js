@@ -11,14 +11,13 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  roleId: {
+  role: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Role',
-    required: true,
+    autopopulate: true,
   },
 });
 
-// Fungsi untuk membandingkan password yang diinputkan dengan password hash di database
 userSchema.methods.comparePassword = async function (password) {
   return await bcrypt.compare(password, this.password);
 };

@@ -7,8 +7,8 @@ const handleErrors = (message) => {
 
 const maxAge = 24 * 60 * 60; // Token berlaku selama 24 jam
 
-const createToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, {
+const createToken = (user) => {
+  return jwt.sign({ user }, process.env.JWT_SECRET, {
     expiresIn: maxAge,
   });
 };
@@ -62,7 +62,26 @@ const login = async (req, res) => {
   }
 };
 
+// Controller to get the current user's information based on req.user
+const getCurrentUser = async (req, res) => {
+  try {
+    // Check if req.user is populated with user data
+    if (!req.user) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    // User data should be available in req.user
+    const user = req.user;
+    
+    // Send the user object back as the response
+    res.status(200).json({ user });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   register,
   login,
+  getCurrentUser,
 };
